@@ -22,6 +22,7 @@ Plug 'itchyny/lightline.vim'
 " eye candy
 Plug 'dracula/vim', {'as': 'dracula'}
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'psliwka/vim-smoothie'
 Plug 'ryanoasis/vim-devicons'
 Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
 " file exploring
@@ -102,7 +103,8 @@ nnoremap <C-l> <C-w>l
 lua << EOF
 require("bufferline").setup{
   options = {
-      diagnostics = "coc"
+      diagnostics = "coc",
+      offsets = {{filetype = "NvimTree", text = "File Explorer", text_align = "center"}}
     }
 }
 EOF
@@ -214,6 +216,9 @@ augroup qs_colors
   autocmd ColorScheme * highlight QuickScopePrimary gui=underline,bold cterm=underline,bold
   autocmd ColorScheme * highlight QuickScopeSecondary gui=underline,bold cterm=underline,bold
 augroup END
+
+" smoothie
+let g:smoothie_update_interval = 5
 
 " treesitter
 lua << EOF
