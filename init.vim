@@ -11,20 +11,17 @@ Plug 'neoclide/coc-tsserver', {'do': 'yarn install --frozen-lockfile'}
 Plug 'iamcco/coc-angular', {'do': 'yarn install --frozen-lockfile && yarn build'}
 " bufferline and statusline
 Plug 'akinsho/bufferline.nvim', {'tag': 'v2.*'}
-" editing
-Plug 'alvan/vim-closetag'
-Plug 'gosukiwi/vim-zen-coding'
-Plug 'folke/which-key.nvim'
-Plug 'tpope/vim-surround'
-Plug 'tpope/vim-commentary'
-Plug 'unblevable/quick-scope'
 Plug 'itchyny/lightline.vim'
+" editing
+Plug 'folke/which-key.nvim'
+Plug 'justinmk/vim-sneak'
+Plug 'mattn/emmet-vim'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-surround'
 " eye candy
 Plug 'dracula/vim', {'as': 'dracula'}
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'psliwka/vim-smoothie'
-Plug 'ryanoasis/vim-devicons'
-Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
 " file exploring
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'junegunn/fzf', {'do': { -> fzf#install() }}
@@ -64,6 +61,7 @@ set clipboard=unnamedplus
 set ignorecase
 set nobackup
 set nowritebackup
+set shortmess+=c
 set smartcase
 set timeoutlen=100
 set updatetime=300
@@ -104,7 +102,9 @@ lua << EOF
 require("bufferline").setup{
   options = {
       diagnostics = "coc",
-      offsets = {{filetype = "NvimTree", text = "File Explorer", text_align = "center"}}
+      offsets = {{filetype = "nerdtree", text = " "}},
+      show_buffer_close_icons = false,
+      show_close_icon = false,
     }
 }
 EOF
@@ -165,7 +165,6 @@ function! s:check_back_space() abort
 endfunction
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gf <Plug>(coc-fix-current)
-nmap <leader>cr  <Plug>(coc-rename)
 nnoremap <silent> K :call <SID>show_documentation()<CR>
 function! s:show_documentation()
   if (index(["vim", "help"], &filetype) >= 0)
@@ -174,6 +173,9 @@ function! s:show_documentation()
     call CocAction("doHover")
   endif
 endfunction
+
+" emmet
+imap <silent><expr> <Tab> emmet#expandAbbrIntelligent("\<Tab>")
 
 " fuzzy finder
 let $FZF_DEFAULT_COMMAND = "rg --files --hidden"
@@ -199,26 +201,34 @@ let g:lightline = {
       \ "active": {
       \   "right": [ [ "lineinfo" ], [ "filetype" ] ]
       \ },
+      \ "component_function": {
+      \   "filename": "LightlineFilename",
+      \   "mode": "LightlineMode",
+      \ },
       \ "enable": {
       \   "tabline": 0
       \ }
       \ }
+function! LightlineFilename()
+  return &filetype ==# "nerdtree" || &filetype ==# "vim-plug" ? '' :
+        \ expand("%:t") !=# '' ? expand("%:t") : "[No Name]" 
+endfunction
+function! LightlineMode()
+  return &filetype ==# "nerdtree" || &filetype ==# "vim-plug" ? '' :
+        \ lightline#mode()
+endfunction
 
 " nerdtree
 let NERDTreeMinimalUI=1
 let NERDTreeShowHidden=1
 let NERDTreeIgnore=['\.git$', '\.vscode$']
 
-" quickscope
-let g:qs_max_chars=80
-augroup qs_colors
-  autocmd!
-  autocmd ColorScheme * highlight QuickScopePrimary gui=underline,bold cterm=underline,bold
-  autocmd ColorScheme * highlight QuickScopeSecondary gui=underline,bold cterm=underline,bold
-augroup END
-
 " smoothie
 let g:smoothie_update_interval = 5
+
+" sneak
+let g:sneak#label = 1
+let g:sneak#use_ic_scs = 1
 
 " treesitter
 lua << EOF
@@ -258,16 +268,15 @@ local setup = {
   },
 }
 local mappings = {
-  ["e"] = {"<cmd>NERDTreeToggle<Cr>", "Explorer"},
-  ["w"] = {"<cmd>w!<Cr>", "Save"},
-  ["q"] = {"<cmd>q!<Cr>", "Quit"},
-  ["c"] = {"<cmd>CloseBuf<Cr>", "Close buffer"},
   ["C"] = {"<cmd>BufOnly<Cr>", "Close other buffers"},
-  ["h"] = {"<cmd>nohlsearch<Cr>", "No highlight"},
-  ["f"] = {"<cmd>Files<Cr>", "Find file"},
   ["F"] = {"<cmd>Rg<Cr>", "Find text"},
+  ["c"] = {"<cmd>CloseBuf<Cr>", "Close buffer"},
+  ["e"] = {"<cmd>NERDTreeToggle<Cr>", "Explorer"},
+  ["f"] = {"<cmd>Files<Cr>", "Find file"},
+  ["h"] = {"<cmd>nohlsearch<Cr>", "No highlight"},
+  ["q"] = {"<cmd>q!<Cr>", "Quit"},
   ["r"] = {"<Plug>(coc-rename)", "Rename variable"},
-  ["x"] = {"<cmd>ZenCodingExpand<Cr>", "Expand html"}
+  ["w"] = {"<cmd>w!<Cr>", "Save"},
 }
 require("which-key").setup(setup)
 require("which-key").register(mappings, {prefix = "<leader>"})
